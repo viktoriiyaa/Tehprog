@@ -45,7 +45,7 @@ public:
     }
 
     vect operator+(const vect& v) {
-        // Убедитесь, что размеры векторов совпадают
+        // размеры векторов должны совпадать
         vect res(dim);
         for (int i = 0; i < dim; ++i)
             res.b[i] = b[i] + v.b[i];
@@ -54,7 +54,6 @@ public:
     }
 
     vect operator-(const vect& v) {
-        // Убедитесь, что размеры векторов совпадают
         vect res(dim);
         for (int i = 0; i < dim; ++i)
             res.b[i] = b[i] - v.b[i];
