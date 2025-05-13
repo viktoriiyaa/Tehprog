@@ -34,7 +34,7 @@ public:
 
     vect& operator=(const vect& v) {
         if (this != &v) {
-            delete[] b;
+            delete[] b; //osvpytecv
             dim = v.dim;
             b = new double[dim];
             for (int i = 0; i < dim; ++i)
@@ -45,7 +45,6 @@ public:
     }
 
     vect operator+(const vect& v) {
-        // размеры векторов должны совпадать
         vect res(dim);
         for (int i = 0; i < dim; ++i)
             res.b[i] = b[i] + v.b[i];
@@ -121,7 +120,7 @@ public:
     ~matr() {
         for (int i = 0; i < dim; ++i)
             delete[] a[i];
-        delete[] a;
+        delete[] a; //osvpvpmyk
         cout << "Удалена матрица #" << num << endl;
     }
 
@@ -212,7 +211,7 @@ int matr::count = 0;
 
 int main() {
     matr m1(3), m2(3);
-    vect v(3), v2(3); // Создание первого вектора v и второго вектора v2 одновременно
+    vect v(3), v2(3); // Создание первого вектора v и второго вектора v2 
 
     // Заполнение матриц и векторов
     for (int i = 0; i < 3; ++i) {
