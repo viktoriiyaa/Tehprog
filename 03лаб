@@ -1,0 +1,189 @@
+#include <iostream>
+#include <cmath>
+#include <vector>
+#include <memory>
+
+#define PI 3.14159265
+
+using namespace std;
+
+// Абстрактный класс "Точка"
+class Point {
+protected:
+    double x, y;
+
+public:
+    Point(double x = 0, double y = 0) : x(x), y(y) {}
+    virtual void draw() const = 0;
+    virtual void move(double dx, double dy) {
+        x += dx;
+        y += dy;
+    }
+
+    virtual void rotate(double angleDeg, const Point& center) {
+        double angleRad = angleDeg * PI / 180.0;
+        double sinA = sin(angleRad), cosA = cos(angleRad);
+        double dx = x - center.x, dy = y - center.y;
+
+        double newX = center.x + dx * cosA - dy * sinA;
+        double newY = center.y + dx * sinA + dy * cosA;
+
+        x = newX;
+        y = newY;
+    }
+
+    virtual void erase() const {
+        cout << "Erase point at (" << x << ", " << y << ")\n";
+    }
+
+    virtual ~Point() = default;
+};
+
+// Линия из двух точек
+class Line : public Point {
+protected:
+    Point* p1;
+    Point* p2;
+
+public:
+    Line(Point* p1, Point* p2) : p1(p1), p2(p2) {}
+
+    void draw() const override {
+        cout << "Draw line between ";
+        p1->draw();
+        cout << " and ";
+        p2->draw();
+        cout << endl;
+    }
+
+    void erase() const override {
+        cout << "Erase line\n";
+    }
+
+    void move(double dx, double dy) override {
+        p1->move(dx, dy);
+        p2->move(dx, dy);
+    }
+
+    void rotate(double angle, const Point& center) override {
+        p1->rotate(angle, center);
+        p2->rotate(angle, center);
+    }
+};
+
+// Класс-форма: базовый класс для фигур
+class Shape : public Point {
+public:
+    Shape(double x = 0, double y = 0) : Point(x, y) {}
+
+    virtual void draw() const override = 0;
+    virtual void erase() const override = 0;
+    virtual void move(double dx, double dy) override = 0;
+    virtual void rotate(double angle, const Point& center) override = 0;
+};
+
+// Прямоугольник
+class Rectangle : public Shape {
+protected:
+    vector<Point> vertices;
+
+public:
+    Rectangle(Point p1, Point p2, Point p3, Point p4) {
+        vertices = { p1, p2, p3, p4 };
+    }
+
+    void draw() const override {
+        cout << "Draw Rectangle with vertices:\n";
+        for (auto& v : vertices)
+            v.draw();
+    }
+
+    void erase() const override {
+        cout << "Erase Rectangle\n";
+    }
+
+    void move(double dx, double dy) override {
+        for (auto& v : vertices)
+            v.move(dx, dy);
+    }
+
+    void rotate(double angle, const Point& center) override {
+        for (auto& v : vertices)
+            v.rotate(angle, center);
+    }
+};
+
+// Класс Квадрат (виртуально от Параллелограмма)
+class Parallelogram : virtual public Rectangle {
+public:
+    Parallelogram(Point p1, Point p2, Point p3, Point p4)
+        : Rectangle(p1, p2, p3, p4) {}
+
+    void draw() const override {
+        cout << "Draw Parallelogram:\n";
+        Rectangle::draw();
+    }
+
+    void erase() const override {
+        cout << "Erase Parallelogram\n";
+    }
+};
+
+class Square : virtual public Parallelogram {
+public:
+    Square(Point p1, Point p2, Point p3, Point p4)
+        : Rectangle(p1, p2, p3, p4), Parallelogram(p1, p2, p3, p4) {}
+
+    void draw() const override {
+        cout << "Draw Square:\n";
+        Rectangle::draw();
+    }
+
+    void erase() const override {
+        cout << "Erase Square\n";
+    }
+};
+
+// Ромб
+class Rhombus : public Parallelogram {
+public:
+    Rhombus(Point p1, Point p2, Point p3, Point p4)
+        : Rectangle(p1, p2, p3, p4), Parallelogram(p1, p2, p3, p4) {}
+
+    void draw() const override {
+        cout << "Draw Rhombus:\n";
+        Rectangle::draw();
+    }
+
+    void erase() const override {
+        cout << "Erase Rhombus\n";
+    }
+};
+
+// Простая реализация точки
+class SimplePoint : public Point {
+public:
+    SimplePoint(double x, double y) : Point(x, y) {}
+
+    void draw() const override {
+        cout << "(" << x << ", " << y << ")";
+    }
+};
+
+int main() {
+    // Демонстрация
+    SimplePoint a(0, 0), b(1, 0), c(1, 1), d(0, 1);
+
+    Square square(a, b, c, d);
+    square.draw();
+    square.move(1, 1);
+    square.rotate(90, SimplePoint(0, 0));
+    square.erase();
+
+    Rhombus rhombus(a, b, c, d);
+    rhombus.draw();
+    rhombus.move(-1, -1);
+    rhombus.erase();
+
+    return 0;
+}
