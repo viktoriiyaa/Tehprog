@@ -1,0 +1,201 @@
+#include <iostream>
+#include <cmath>
+#include <vector>
+#include <memory>
+#include <locale>
+
+#define PI 3.14159265
+
+using namespace std;
+
+// Абстрактный класс "Точка"
+class Point {
+protected:
+    double x, y;
+
+public:
+    Point(double x = 0, double y = 0) : x(x), y(y) {}
+    virtual void draw() const = 0;
+    virtual void move(double dx, double dy) {
+        x += dx;
+        y += dy;
+    }
+
+    virtual void rotate(double angleDeg, const Point& center) {
+        double angleRad = angleDeg * PI / 180.0;
+        double sinA = sin(angleRad), cosA = cos(angleRad);
+        double dx = x - center.x, dy = y - center.y;
+
+        double newX = center.x + dx * cosA - dy * sinA;
+        double newY = center.y + dx * sinA + dy * cosA;
+
+        x = newX;
+        y = newY;
+    }
+
+    virtual void erase() const {
+        cout << "Erase point at (" << x << ", " << y << ")\n";
+    }
+
+    virtual ~Point() = default;
+    double getX() const { return x; }
+    double getY() const { return y; }
+};
+
+// Простая реализация точки
+class SimplePoint : public Point {
+public:
+    SimplePoint(double x, double y) : Point(x, y) {}
+    void draw() const override {
+        cout << "(" << x << ", " << y << ")";
+    }
+};
+
+// Класс "Линия" (не наследует от Point)
+class Line {
+private:
+    shared_ptr<Point> p1;
+    shared_ptr<Point> p2;
+
+public:
+    Line(shared_ptr<Point> p1, shared_ptr<Point> p2) : p1(p1), p2(p2) {}
+
+    void draw() const {
+        cout << "Line between ";
+        p1->draw();
+        cout << " and ";
+        p2->draw();
+        cout << endl;
+    }
+
+    void erase() const {
+        cout << "Erase line\n";
+    }
+
+    void move(double dx, double dy) {
+        p1->move(dx, dy);
+        p2->move(dx, dy);
+    }
+
+    void rotate(double angle, const Point& center) {
+        p1->rotate(angle, center);
+        p2->rotate(angle, center);
+    }
+};
+
+// Базовый класс "Фигура"
+class Shape {
+public:
+    virtual void draw() const = 0;
+    virtual void erase() const = 0;
+    virtual void move(double dx, double dy) = 0;
+    virtual void rotate(double angle, const Point& center) = 0;
+    virtual ~Shape() = default;
+};
+
+// Прямоугольник (наследует от Shape)
+class Rectangle : public virtual Shape {
+protected:
+    vector<shared_ptr<Point>> vertices;
+
+public:
+    Rectangle(shared_ptr<Point> p1, shared_ptr<Point> p2, shared_ptr<Point> p3, shared_ptr<Point> p4) {
+        vertices = { p1, p2, p3, p4 };
+    }
+
+    void draw() const override {
+        cout << "Draw Rectangle with vertices:\n";
+        for (const auto& v : vertices)
+            v->draw(), cout << "\n";
+    }
+
+    void erase() const override {
+        cout << "Erase Rectangle\n";
+    }
+
+    void move(double dx, double dy) override {
+        for (auto& v : vertices)
+            v->move(dx, dy);
+    }
+
+    void rotate(double angle, const Point& center) override {
+        for (auto& v : vertices)
+            v->rotate(angle, center);
+    }
+};
+
+// Параллелограмм (наследует от Rectangle)
+class Parallelogram : public virtual Rectangle {
+public:
+    Parallelogram(shared_ptr<Point> p1, shared_ptr<Point> p2, shared_ptr<Point> p3, shared_ptr<Point> p4)
+        : Rectangle(p1, p2, p3, p4) {}
+
+    void draw() const override {
+        cout << "Draw Parallelogram:\n";
+        Rectangle::draw();
+    }
+
+    void erase() const override {
+        cout << "Erase Parallelogram\n";
+    }
+};
+
+// Квадрат (виртуально от Parallelogram)
+class Square : public virtual Parallelogram, public Rectangle {
+public:
+    Square(shared_ptr<Point> p1, shared_ptr<Point> p2, shared_ptr<Point> p3, shared_ptr<Point> p4)
+        : Rectangle(p1, p2, p3, p4), Parallelogram(p1, p2, p3, p4) {}
+
+    void draw() const override {
+        cout << "Draw Square:\n";
+        Rectangle::draw();
+    }
+
+    void erase() const override {
+        cout << "Erase Square\n";
+    }
+};
+
+// Ромб (от Parallelogram)
+class Rhombus : public Parallelogram {
+public:
+    Rhombus(shared_ptr<Point> p1, shared_ptr<Point> p2, shared_ptr<Point> p3, shared_ptr<Point> p4)
+        : Parallelogram(p1, p2, p3, p4) {}
+
+    void draw() const override {
+        cout << "Draw Rhombus:\n";
+        Parallelogram::draw();
+    }
+
+    void erase() const override {
+        cout << "Erase Rhombus\n";
+    }
+};
+
+int main() {
+    setlocale(LC_ALL, "Russian");
+
+    // Создаём точки
+    auto a = make_shared<SimplePoint>(0, 0);
+    auto b = make_shared<SimplePoint>(1, 0);
+    auto c = make_shared<SimplePoint>(1, 1);
+    auto d = make_shared<SimplePoint>(0, 1);
+
+    // Создаём фигуры
+    Square square(a, b, c, d);
+    square.draw();
+    square.move(1, 1);
+    square.rotate(90, *a);
+    square.erase();
+
+    auto p1 = make_shared<SimplePoint>(0, 0);
+    auto p2 = make_shared<SimplePoint>(2, 0);
+    auto p3 = make_shared<SimplePoint>(2, 2);
+    auto p4 = make_shared<SimplePoint>(0, 2);
+    Rhombus rhombus(p1, p2, p3, p4);
+    rhombus.draw();
+    rhombus.move(-1, -1);
+    rhombus.erase();
+
+    return 0;
+}
