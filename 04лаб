@@ -1,0 +1,127 @@
+#include <iostream>
+#include <fstream>
+#include <sstream>
+#include <vector>
+#include <string>
+
+class Student {
+public:
+    int         id;
+    std::string name;
+    double      grade;
+    int         age;
+    std::string major;
+};
+
+// Студент в вектор
+void addStudent(std::vector<Student>& v, const Student& s) {
+    v.push_back(s);
+}
+
+// Сохранить в файл
+void saveToFile(const std::vector<Student>& v, const std::string& filename) {
+    std::ofstream ofs(filename);
+    for (const auto& s : v) {
+        ofs << s.id << ' '
+            << s.name << ' '
+            << s.grade << ' '
+            << s.age << ' '
+            << s.major << '\n';
+    }
+}
+
+// Загрузить из файла (очистка и чтение)
+void loadFromFile(std::vector<Student>& v, const std::string& filename) {
+    v.clear();
+    std::ifstream ifs(filename);
+    std::string line;
+    while (std::getline(ifs, line)) {
+        std::istringstream iss(line);
+        Student s;
+        iss >> s.id >> s.name >> s.grade >> s.age >> s.major;
+        v.push_back(s);
+    }
+}
+
+// Обновить по индексу
+void updateStudent(std::vector<Student>& v, int idx, const Student& newData) {
+    if (idx < v.size()) {
+        v[idx] = newData;
+    }
+}
+
+// Удалить по индексу
+void removeStudent(std::vector<Student>& v, int idx) {
+    if (idx < v.size()) {
+        v.erase(v.begin() + idx);
+    }
+}
+
+// Очистить вектор
+void clearAll(std::vector<Student>& v) {
+    v.clear();
+}
+
+// Вывод в консольку
+void printAll(const std::vector<Student>& v, const std::string& header = "") {
+    if (!header.empty()) {
+        std::cout << header << "\n";
+    }
+    for (int i = 0; i < v.size(); ++i) {
+        const auto& s = v[i];
+        std::cout << '[' << i << "] "
+                  << "ID=" << s.id << ", "
+                  << "Name=" << s.name << ", "
+                  << "Grade=" << s.grade << ", "
+                  << "Age=" << s.age << ", "
+                  << "Major=" << s.major << "\n";
+    }
+    std::cout << std::endl;
+}
+
+int main() 
+{
+    const std::string filename = "db.txt";
+    std::vector<Student> students;
+
+    // Начинаем с пустого файла и вектора
+    clearAll(students);
+    saveToFile(students, filename);
+
+    // Добавляем в класс
+    addStudent(students, Student{1, "Alice", 85.5, 20, "Physics"});
+    addStudent(students, Student{2, "Bob",   91.0, 21, "Mathematics"});
+    addStudent(students, Student{3, "Carol", 78.0, 19, "ComputerScience"});
+    printAll(students, "После добавления 3х студентов:");
+
+    // Сохраняем в файл
+    saveToFile(students, filename);
+    std::cout << "Сохранили в " << filename << "\n\n";
+
+    // Очищаем память
+    clearAll(students);
+    printAll(students, "После отчистки вектора:");
+
+    // Загружаем из файла
+    loadFromFile(students, filename);
+    printAll(students, "После загрузки из файла: ");
+
+    // Обновляем элемент (1)
+    updateStudent(students, 1, Student{2, "Bobby", 93.2, 21, "Mathematics"});
+    printAll(students, "После обнавления элемента на индексе 1:");
+
+    // Добавляем ещё элемент
+    addStudent(students, Student{4, "Dave", 88.8, 22, "Engineering"});
+    printAll(students, "После добавления нового элемента:");
+
+    // Удаляем элементы(первый и последний)
+    removeStudent(students, 0);
+    removeStudent(students, students.size() - 1);
+    printAll(students, "После удаления первого и последнего элемента:");
+
+    // Сохраняем в файл
+    saveToFile(students, filename);
+    std::cout << "Сохранили в файл" << filename << "\n";
+
+    return 0;
+}
